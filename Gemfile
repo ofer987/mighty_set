@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
 group :development, :test do
-  gem 'pry'
-  gem 'pry-byebug'
+  gem 'pry', require: true
+  gem 'pry-byebug', require: true
   gem 'pry-doc'
   gem 'awesome_print'
 

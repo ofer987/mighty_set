@@ -1,5 +1,5 @@
 # require_relative '../spec_helper.rb'
-require_relative '../../lib/sets/mighty_set.rb'
+require_relative '../../lib/sets.rb'
 
 include Sets
 
