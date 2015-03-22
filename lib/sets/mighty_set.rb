@@ -11,6 +11,7 @@ module Sets
     end
 
     def calculate
+      simplified_array = simplify_array(numbers)
       result_array = aggregate_numbers(simplified_array)
 
       find_largest_number(result_array)
@@ -48,46 +49,82 @@ module Sets
       loop do
         break if index >= array.size
 
-        if array[index] <= 0
-          aggregate_array << array[index]
+        # if array[index] <= 0
+        #   aggregate_array << array[index]
+        #
+        #   index += 1
+        #   next
+        # end
 
+        # sum = array[index]
+
+        if array[index] < 0 && (index + 1) < array.size && array[index] + array[index + 1] >= 0
+          number = array[index] + array[index + 1]
+          index += 2
+        else
+          number = array[index]
           index += 1
-          next
         end
 
-        sum = array[index]
+        aggregate_array << number
 
         # Look ahead until find a positive sum
-        future_sum = 0
-        for end_index in (index+1)..(array.size-1) do
-          future_sum += array[end_index]
+        # negative_sum = 0
+        # if
+        # for end_index in (index+1)..(array.size-1) do
+        #   # future_sum += array[end_index]
+        #
+        #   if array[end_index] > 0
+        #     if (sum + negative_sum) > 0
+        #       sum += negative_sum
+        #     end
+        #     index = end_index-1
+        #
+        #     break
+        #   end
+        #
+        #   negative_sum += array[end_index]
+        #
+        #   # if future_sum > 0
+        #   #   sum += future_sum
+        #   #   index = end_index
+        #   #
+        #   #   break
+        #   # end
+        # end
 
-          if future_sum > 0
-            sum += future_sum
-            index = end_index
+        # aggregate_array << sum
 
-            break
-          end
-        end
-
-        aggregate_array << sum
-
-        index += 1
+        # index += 1
       end
 
+      aggregate_array = simplify_array(aggregate_array)
       array == aggregate_array ? array : aggregate_numbers(aggregate_array)
     end
 
-    def simplified_array
+    # Discard 0
+    # Sum all contiguous positive numbers
+    # Sum all contiguous negative numbers
+    def simplify_array(array)
       simpler_array = Array.new
-      is_positive_number = numbers[0] >= 0
+      is_positive_number = array[0] > 0
+      previous_number_was_zero = false
 
       cumulative_sum = 0
-      # simpler_array << numbers[0]
-      numbers[0..-1].each do |number|
-        if is_positive_number == number >= 0
+      array[0..-1].each do |number|
+        if number == 0
+          previous_number_was_zero = true
+          unless cumulative_sum == 0
+            simpler_array << cumulative_sum
+            cumulative_sum = 0
+          end
+          next
+        elsif previous_number_was_zero || is_positive_number == number >= 0
+          previous_number_was_zero = false
           cumulative_sum += number
+          is_positive_number = number >= 0
         else
+          previous_number_was_zero = false
           simpler_array << cumulative_sum
 
           cumulative_sum = number
