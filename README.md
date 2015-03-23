@@ -1,7 +1,8 @@
 # Mighty Set
 
 ## Installation
-  bundle install
+
+    bundle install
 
 ## Testing
 
