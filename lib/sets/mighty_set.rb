@@ -4,6 +4,8 @@ module Sets
 
     def largest_sum
       calculate unless defined? @largest_sum
+
+      @largest_sum
     end
 
     def initialize numbers
@@ -16,7 +18,7 @@ module Sets
       simplified_array = simplify_array(numbers)
       result_array = sum_items(simplified_array)
 
-      find_largest_number(result_array)
+      @largest_sum = find_largest_number(result_array)
     end
 
     def find_largest_number(array)
