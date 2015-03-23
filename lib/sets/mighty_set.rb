@@ -10,130 +10,133 @@ module Sets
       @numbers = numbers
     end
 
+    private
+
     def calculate
       simplified_array = simplify_array(numbers)
-      result_array = aggregate_numbers(simplified_array)
+      result_array = sum_items(simplified_array)
 
       find_largest_number(result_array)
     end
 
-    private
-
     def find_largest_number(array)
-      largest_number = array[0]
+      largest_number = nil
 
-      array[1..-1].each do |number|
-        largest_number = number if number > largest_number
+      array.each do |number|
+        largest_number = number if largest_number.nil? || number > largest_number
       end
 
       largest_number
     end
 
     # Recursive function
-    def aggregate_numbers(array)
-      # Skip negative numbers
-      # start_index = -1
-      # simpler_array.each_with_index do |number, index|
-      #   if number > 0
-      #     start_index = index
-      #     break
-      #   end
-      # end
+    # Find a negative number surrounded by two positive numbers,
+    # one on the left (number1) and one on the right (number2)
+    # Then replace this trio and the following subsets IF
+    # The absolute value of the sum of a contiguous subset
+    # of numbers (starting from number1) to the left is greater than
+    # the absolute value of the negative number
+    # AND
+    # the absolute value of a contiguous subset of numbers (starting
+    # from number2) to the right is greater than the absolute
+    # value of the negative number
+    def sum_items(array)
+      result_array = Array.new
 
-      # All numbers are negative
-      # Find the largest single number
-      # return simpler_array[0] if start_index == -1
-
-      aggregate_array = Array.new
       index = 0
       loop do
         break if index >= array.size
 
-        # if array[index] <= 0
-        #   aggregate_array << array[index]
-        #
-        #   index += 1
-        #   next
-        # end
+        # Number should be negative
+        # Otherwise, just store it; it could be used to calculate
+        # the greatest sum
+        number = array[index]
+        if number >= 0
 
-        # sum = array[index]
+          result_array << number
 
-        if array[index] < 0 && (index + 1) < array.size && array[index] + array[index + 1] >= 0
-          number = array[index] + array[index + 1]
-          index += 2
-        else
-          number = array[index]
           index += 1
+          next
         end
 
-        aggregate_array << number
+        # We know that the number is negative
+        negative_number = number
 
-        # Look ahead until find a positive sum
-        # negative_sum = 0
-        # if
-        # for end_index in (index+1)..(array.size-1) do
-        #   # future_sum += array[end_index]
-        #
-        #   if array[end_index] > 0
-        #     if (sum + negative_sum) > 0
-        #       sum += negative_sum
-        #     end
-        #     index = end_index-1
-        #
-        #     break
-        #   end
-        #
-        #   negative_sum += array[end_index]
-        #
-        #   # if future_sum > 0
-        #   #   sum += future_sum
-        #   #   index = end_index
-        #   #
-        #   #   break
-        #   # end
-        # end
+        # Search the subset of numbers to the left
+        previous_sum = 0
+        found_previous_sum = false
+        result_array.reverse.each do |previous_number|
+          break if previous_number < 0
 
-        # aggregate_array << sum
+          previous_sum += previous_number
+          if previous_sum >= -negative_number
+            found_previous_sum = true
+            break
+          end
+        end
 
-        # index += 1
+        # Numbers to the left do not satisfy condition
+        unless found_previous_sum
+          result_array << negative_number
+
+          index += 1
+          next
+        end
+
+        # Search the subset of numbers to the right
+        sum = 0
+        found_sum = false
+        (index+1..array.size-1).each do |look_ahead_index|
+          next_number = array[look_ahead_index]
+          sum += next_number
+
+          if sum >= -negative_number
+            # For the next iteration, discard the numbers
+            # that have already been counted and aggregated
+            found_sum = true
+            index = look_ahead_index + 1
+            result_array << negative_number + sum
+
+            break
+          end
+        end
+
+        # Number to the right do not satisfy condition
+        unless found_sum
+          result_array << negative_number
+
+          index += 1
+          next
+        end
       end
 
-      aggregate_array = simplify_array(aggregate_array)
-      array == aggregate_array ? array : aggregate_numbers(aggregate_array)
+      # Return the input array if all items that could be aggregated have been,
+      # and the array cannot be simplified further
+      simplified_result_array = simplify_array(result_array)
+      array == result_array ? array : sum_items(simplified_result_array)
     end
 
-    # Discard 0
     # Sum all contiguous positive numbers
     # Sum all contiguous negative numbers
+    # Returns an array with alternating postive and negative numbers
     def simplify_array(array)
       simpler_array = Array.new
-      is_positive_number = array[0] > 0
-      previous_number_was_zero = false
+      is_positive_number = nil
 
       cumulative_sum = 0
-      array[0..-1].each do |number|
-        if number == 0
-          previous_number_was_zero = true
-          unless cumulative_sum == 0
-            simpler_array << cumulative_sum
-            cumulative_sum = 0
-          end
-          next
-        elsif previous_number_was_zero || is_positive_number == number >= 0
-          previous_number_was_zero = false
+      array.each do |number|
+        if is_positive_number.nil? || is_positive_number == (number >= 0)
           cumulative_sum += number
-          is_positive_number = number >= 0
         else
-          previous_number_was_zero = false
           simpler_array << cumulative_sum
 
           cumulative_sum = number
-          is_positive_number = number >= 0
         end
-      end
-      simpler_array << cumulative_sum
 
-      simpler_array
+        is_positive_number = number >= 0
+      end
+
+      simpler_array << cumulative_sum
     end
   end
 end
